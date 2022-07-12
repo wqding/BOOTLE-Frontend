@@ -5,13 +5,13 @@ import Logo from '../components/Logo';
 import Header from '../components/Header';
 import TextInput from '../components/TextInput';
 import Button from '../components/Button';
-import {emailValidator} from '../helpers/emailValidator';
+import {validateEmail} from '../utils';
 
 export default function ResetPasswordScreen({navigation}) {
   const [email, setEmail] = useState({value: '', error: ''});
 
   const sendResetPasswordEmail = () => {
-    const emailError = emailValidator(email.value);
+    const emailError = validateEmail(email.value);
     if (emailError) {
       setEmail({...email, error: emailError});
       return;

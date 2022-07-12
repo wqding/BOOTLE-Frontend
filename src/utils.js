@@ -36,3 +36,19 @@ export const encodeJsonToForm = jsonBody => {
   formBody = formBody.join('&');
   return formBody;
 };
+
+export const stringToBool = string => {
+  if (string === '1') {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+export const boolToString = bool => {
+  if (bool === true) {
+    return '1';
+  } else {
+    return '0';
+  }
+};

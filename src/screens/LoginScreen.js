@@ -47,7 +47,7 @@ export default function LoginScreen({navigation}) {
         }
       })
       .catch(err => {
-        console.log("Failed to connect to " + baseUrl + " due to: " + err);
+        console.log('Failed to connect to ' + baseUrl + ' due to: ' + err);
       });
   };
 
