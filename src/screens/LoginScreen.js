@@ -8,25 +8,47 @@ import Button from '../components/Button';
 import TextInput from '../components/TextInput';
 import BackButton from '../components/BackButton';
 import {theme} from '../core/theme';
-import {emailValidator} from '../helpers/emailValidator';
-import {passwordValidator} from '../helpers/passwordValidator';
+import {validateEmail, validatePassword, encodeJsonToForm} from '../utils';
 
 export default function LoginScreen({navigation}) {
+  const baseUrl = process.env.REACT_APP_BASE_URL;
   const [email, setEmail] = useState({value: '', error: ''});
   const [password, setPassword] = useState({value: '', error: ''});
 
   const onLoginPressed = () => {
-    const emailError = emailValidator(email.value);
-    const passwordError = passwordValidator(password.value);
+    const emailError = validateEmail(email.value);
+    const passwordError = validatePassword(password.value);
     if (emailError || passwordError) {
       setEmail({...email, error: emailError});
       setPassword({...password, error: passwordError});
       return;
     }
-    navigation.reset({
-      index: 0,
-      routes: [{name: 'Dashboard'}],
-    });
+
+    const jsonBody = {
+      email: email.value,
+      password: password.value,
+    };
+
+    fetch(baseUrl + '/users/login', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: encodeJsonToForm(jsonBody),
+    })
+      .then(res => {
+        if (res.status === 200) {
+          console.log('logged in');
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'Dashboard'}],
+          });
+        }
+      })
+      .catch(err => {
+        console.log("failed to connect to " + baseUrl + " due to: " + err);
+      });
   };
 
   return (

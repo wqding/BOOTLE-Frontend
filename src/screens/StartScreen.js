@@ -1,5 +1,4 @@
 import React from 'react';
-import {theme} from '../core/theme';
 import Background from '../components/Background';
 import Logo from '../components/Logo';
 import Header from '../components/Header';
