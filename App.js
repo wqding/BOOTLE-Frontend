@@ -17,7 +17,8 @@ export default function App() {
     <PaperProvider>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="StartScreen"
+          // initialRouteName="StartScreen"
+          initialRouteName="Dashboard"
           screenOptions={{
             headerShown: false,
           }}>
