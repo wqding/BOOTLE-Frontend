@@ -1,9 +1,7 @@
 import React, {useState} from 'react';
 import {LogBox, View, StyleSheet} from 'react-native';
-import {Text, Checkbox} from 'react-native-paper';
+import {Checkbox} from 'react-native-paper';
 import {
-  stringToBool,
-  boolToString,
   encodeFromUint8Array,
   decodeToUint8Array,
 } from '../utils';
@@ -191,7 +189,7 @@ export default function Dashboard({navigation}) {
       )}
 
       <View style={styles.row}>
-        <Text>message: {message}</Text>
+        <Paragraph>message: {message}</Paragraph>
       </View>
 
       {/* Checkbox */}
