@@ -1,3 +1,17 @@
+import {btoa, atob} from 'abab';
+
+export const encodeFromUint8Array = arr => {
+  return btoa(String.fromCharCode(...Array.from(arr)));
+};
+
+export const decodeToUint8Array = str => {
+  return Uint8Array.from(
+    atob(str)
+      .split('')
+      .map(s => s.charCodeAt(0)),
+  );
+};
+
 export const validateEmail = email => {
   const re = /\S+@\S+\.\S+/;
   if (!email) {

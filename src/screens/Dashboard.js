@@ -1,8 +1,12 @@
 import React, {useState} from 'react';
 import {LogBox, View, StyleSheet} from 'react-native';
 import {Text, Checkbox} from 'react-native-paper';
-import base64 from 'react-native-base64';
-import {stringToBool, boolToString} from '../utils';
+import {
+  stringToBool,
+  boolToString,
+  encodeFromUint8Array,
+  decodeToUint8Array,
+} from '../utils';
 import Background from '../components/Background';
 import Logo from '../components/Logo';
 import Header from '../components/Header';
@@ -46,7 +50,7 @@ export default function Dashboard({navigation}) {
     setTimeout(() => {
       bleManager.stopDeviceScan();
     }, 5000);
-  }
+  };
 
   async function disconnectDevice() {
     console.log('Disconnecting start');
@@ -87,20 +91,26 @@ export default function Dashboard({navigation}) {
           setIsConnected(false);
         });
 
+        console.log(device.id);
+
         //Read inital values
 
         //Message
         device
           .readCharacteristicForService(SERVICE_UUID, ANALOG_READ_UUID)
-          .then(valenc => {
-            setMessage(base64.decode(valenc?.value));
+          .then(encodedVal => {
+            console.log('initial message value');
+            console.log(decodeToUint8Array(encodedVal?.value));
+            setMessage(decodeToUint8Array(encodedVal?.value));
           });
 
         //BoxValue
         device
           .readCharacteristicForService(SERVICE_UUID, DIGITAL_WRITE_UUID)
-          .then(valenc => {
-            setBoxChecked(stringToBool(base64.decode(valenc?.value)));
+          .then(encodedVal => {
+            console.log('initial box value');
+            console.log(decodeToUint8Array(encodedVal?.value)[0]);
+            setBoxChecked(decodeToUint8Array(encodedVal?.value)[0]);
           });
 
         //monitor values and tell what to do when receiving an update
@@ -110,11 +120,11 @@ export default function Dashboard({navigation}) {
           ANALOG_READ_UUID,
           (error, characteristic) => {
             if (characteristic?.value != null) {
-              setMessage(base64.decode(characteristic?.value));
               console.log(
                 'Message update received: ',
-                base64.decode(characteristic?.value),
+                decodeToUint8Array(characteristic?.value),
               );
+              setMessage(decodeToUint8Array(characteristic?.value));
             }
           },
           'messagetransaction',
@@ -126,10 +136,10 @@ export default function Dashboard({navigation}) {
           DIGITAL_WRITE_UUID,
           (error, characteristic) => {
             if (characteristic?.value != null) {
-              setBoxChecked(stringToBool(base64.decode(characteristic?.value)));
+              setBoxChecked(decodeToUint8Array(characteristic?.value)[0]);
               console.log(
                 'Box Value update received: ',
-                base64.decode(characteristic?.value),
+                decodeToUint8Array(characteristic?.value),
               );
             }
           },
@@ -146,12 +156,12 @@ export default function Dashboard({navigation}) {
         connectedDevice?.id,
         SERVICE_UUID,
         DIGITAL_WRITE_UUID,
-        base64.encode(value.toString()),
+        encodeFromUint8Array(new Uint8Array([value])),
       )
       .then(characteristic => {
         console.log(
           'Box value changed to :',
-          base64.decode(characteristic.value),
+          decodeToUint8Array(characteristic.value),
         );
       });
   }
@@ -181,16 +191,15 @@ export default function Dashboard({navigation}) {
       )}
 
       <View style={styles.row}>
-        <Text>{message}</Text>
+        <Text>message: {message}</Text>
       </View>
 
       {/* Checkbox */}
       <View style={styles.row}>
-        <Checkbox
-          disabled={false}
+        <Checkbox.Android
           status={boxChecked ? 'checked' : 'unchecked'}
           onPress={() => {
-            sendDigitalValue(boolToString(!boxChecked));
+            sendDigitalValue(boxChecked);
             setBoxChecked(!boxChecked);
           }}
         />
