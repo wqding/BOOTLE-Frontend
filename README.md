@@ -10,4 +10,4 @@
 2. In another terminal: npm run android
 
 
-More info about react-native-ble-plx library: https://www.arduino.cc/reference/en/libraries/arduinoble/
+More info about react-native-ble-plx library: https://dotintent.github.io/react-native-ble-plx/
