@@ -8,3 +8,6 @@
 ### Development
 1. npm run start
 2. In another terminal: npm run android
+
+
+More info about react-native-ble-plx library: https://www.arduino.cc/reference/en/libraries/arduinoble/
