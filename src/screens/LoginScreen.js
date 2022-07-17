@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {BASE_URL} from "@env";
 import {TouchableOpacity, StyleSheet, View} from 'react-native';
 import {Text} from 'react-native-paper';
 import Background from '../components/Background';
@@ -11,7 +12,6 @@ import {theme} from '../core/theme';
 import {validateEmail, validatePassword, encodeJsonToForm} from '../utils';
 
 export default function LoginScreen({navigation}) {
-  const baseUrl = process.env.REACT_APP_BASE_URL;
   const [email, setEmail] = useState({value: '', error: ''});
   const [password, setPassword] = useState({value: '', error: ''});
 
@@ -29,7 +29,7 @@ export default function LoginScreen({navigation}) {
       password: password.value,
     };
 
-    fetch(baseUrl + '/users/login', {
+    fetch(BASE_URL + '/users/login', {
       method: 'POST',
       headers: {
         Accept: 'application/x-www-form-urlencoded',
@@ -39,15 +39,17 @@ export default function LoginScreen({navigation}) {
     })
       .then(res => {
         if (res.status === 200) {
-          console.log('logged in');
+          console.log('Logged in');
           navigation.reset({
             index: 0,
             routes: [{name: 'Dashboard'}],
           });
+        } else {
+          console.log('Failed to login to ' + BASE_URL + ". " + res);
         }
       })
       .catch(err => {
-        console.log('Failed to connect to ' + baseUrl + ' due to: ' + err);
+        console.log('Failed to login to ' + BASE_URL + ' due to: ' + err);
       });
   };
 

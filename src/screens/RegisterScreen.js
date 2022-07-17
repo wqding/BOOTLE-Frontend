@@ -8,7 +8,8 @@ import Button from '../components/Button';
 import TextInput from '../components/TextInput';
 import BackButton from '../components/BackButton';
 import {theme} from '../core/theme';
-import {validateName, validateEmail, validatePassword} from '../utils';
+import {validateName, validateEmail, validatePassword, encodeJsonToForm} from '../utils';
+import {BASE_URL} from "@env";
 
 export default function RegisterScreen({navigation}) {
   const [name, setName] = useState({value: '', error: ''});
@@ -26,10 +27,34 @@ export default function RegisterScreen({navigation}) {
       return;
     }
 
-    navigation.reset({
-      index: 0,
-      routes: [{name: 'Dashboard'}],
-    });
+    const jsonBody = {
+      name: name.value,
+      email: email.value,
+      password: password.value,
+    };
+
+    fetch(BASE_URL + '/users/register', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: encodeJsonToForm(jsonBody),
+    })
+      .then(res => {
+        if (res.status === 200) {
+          console.log('Registerd user');
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'Dashboard'}],
+          });
+        } else {
+          console.log('Failed to register to ' + BASE_URL + ". " + res);
+        }
+      })
+      .catch(err => {
+        console.log('Failed to register to ' + BASE_URL + ' due to: ' + err);
+      });
   };
 
   return (
