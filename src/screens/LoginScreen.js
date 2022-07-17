@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {BASE_URL} from "@env";
+import {BASE_URL} from '@env';
 import {TouchableOpacity, StyleSheet, View} from 'react-native';
 import {Text} from 'react-native-paper';
 import Background from '../components/Background';
@@ -45,7 +45,7 @@ export default function LoginScreen({navigation}) {
             routes: [{name: 'Dashboard'}],
           });
         } else {
-          console.log('Failed to login to ' + BASE_URL + ". " + res);
+          console.log('Failed to login to ' + BASE_URL + '. ' + res);
         }
       })
       .catch(err => {

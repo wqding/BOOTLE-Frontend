@@ -8,8 +8,13 @@ import Button from '../components/Button';
 import TextInput from '../components/TextInput';
 import BackButton from '../components/BackButton';
 import {theme} from '../core/theme';
-import {validateName, validateEmail, validatePassword, encodeJsonToForm} from '../utils';
-import {BASE_URL} from "@env";
+import {
+  validateName,
+  validateEmail,
+  validatePassword,
+  encodeJsonToForm,
+} from '../utils';
+import {BASE_URL} from '@env';
 
 export default function RegisterScreen({navigation}) {
   const [name, setName] = useState({value: '', error: ''});
@@ -49,7 +54,7 @@ export default function RegisterScreen({navigation}) {
             routes: [{name: 'Dashboard'}],
           });
         } else {
-          console.log('Failed to register to ' + BASE_URL + ". " + res);
+          console.log('Failed to register to ' + BASE_URL + '. ' + res);
         }
       })
       .catch(err => {

@@ -8,7 +8,7 @@ import Header from '../components/Header';
 import Paragraph from '../components/Paragraph';
 import Button from '../components/Button';
 import {theme} from '../core/theme';
-import { Snackbar } from '../components/Snackbar';
+import {Snackbar} from '../components/Snackbar';
 import {BleManager} from 'react-native-ble-plx';
 
 LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
@@ -183,11 +183,15 @@ export default function Dashboard({navigation}) {
   const showSnackbar = message => {
     setSnackbarVisible(true);
     setSnackbarMsg(message);
-  }
+  };
 
   return (
     <Background>
-      <Snackbar message={snackbarMsg} visible={snackbarVisible} onDismiss={() => setSnackbarVisible(false)} />
+      <Snackbar
+        message={snackbarMsg}
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+      />
       <Logo />
       <Header>Let’s hydrate</Header>
       <Paragraph>One stop shop for all your hydration needs.</Paragraph>
