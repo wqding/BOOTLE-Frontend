@@ -20,6 +20,7 @@ export default function RegisterScreen({navigation}) {
   const [name, setName] = useState({value: '', error: ''});
   const [email, setEmail] = useState({value: '', error: ''});
   const [password, setPassword] = useState({value: '', error: ''});
+  const [registerButtonLoading, setRegisterButtonLoading] = useState(false);
 
   const onSignUpPressed = () => {
     const nameError = validateName(name.value);
@@ -31,6 +32,7 @@ export default function RegisterScreen({navigation}) {
       setPassword({...password, error: passwordError});
       return;
     }
+    setRegisterButtonLoading(true);
 
     const jsonBody = {
       name: name.value,
@@ -48,16 +50,26 @@ export default function RegisterScreen({navigation}) {
     })
       .then(res => {
         if (res.status === 200) {
-          console.log('Registerd user');
-          navigation.reset({
-            index: 0,
-            routes: [{name: 'Dashboard'}],
-          });
+          return res.json();
         } else {
-          console.log('Failed to register to ' + BASE_URL + '. ' + res);
+          console.log('Failed to login to ' + BASE_URL);
         }
       })
+      .then(body => {
+        setRegisterButtonLoading(false);
+        console.log('Registerd user');
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'Dashboard',
+              params: {name: body.name, settings: body.settings},
+            },
+          ],
+        });
+      })
       .catch(err => {
+        setRegisterButtonLoading(false);
         console.log('Failed to register to ' + BASE_URL + ' due to: ' + err);
       });
   };
@@ -98,6 +110,7 @@ export default function RegisterScreen({navigation}) {
       />
       <Button
         mode="contained"
+        loading={registerButtonLoading}
         onPress={onSignUpPressed}
         style={{marginTop: 24}}>
         Sign Up

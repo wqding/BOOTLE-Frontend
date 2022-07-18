@@ -34,7 +34,8 @@ const DISPLAY_MODE_TITLES = {
 
 const bleManager = new BleManager();
 
-export default function Dashboard({navigation}) {
+export default function Dashboard({route, navigation}) {
+  const {name, settings} = route.params;
   const [isConnected, setIsConnected] = useState(false);
   const [connectedDevice, setConnectedDevice] = useState();
   const [snackbarVisible, setSnackbarVisible] = useState(true);
@@ -65,9 +66,9 @@ export default function Dashboard({navigation}) {
   };
 
   const disconnectDevice = async () => {
-    console.log('Disconnecting start');
-
     if (connectedDevice != null) {
+      console.log('Disconnecting start');
+
       const isDeviceConnected = await connectedDevice.isConnected();
       if (isDeviceConnected) {
         bleManager.cancelTransaction('messagetransaction');
@@ -180,9 +181,9 @@ export default function Dashboard({navigation}) {
     sendValueOverBT(displayMode);
   };
 
-  const showSnackbar = message => {
+  const showSnackbar = msg => {
     setSnackbarVisible(true);
-    setSnackbarMsg(message);
+    setSnackbarMsg(msg);
   };
 
   return (

@@ -14,6 +14,7 @@ import {validateEmail, validatePassword, encodeJsonToForm} from '../utils';
 export default function LoginScreen({navigation}) {
   const [email, setEmail] = useState({value: '', error: ''});
   const [password, setPassword] = useState({value: '', error: ''});
+  const [loginButtonLoading, setLoginButtonLoading] = useState(false);
 
   const onLoginPressed = () => {
     const emailError = validateEmail(email.value);
@@ -23,6 +24,7 @@ export default function LoginScreen({navigation}) {
       setPassword({...password, error: passwordError});
       return;
     }
+    setLoginButtonLoading(true);
 
     const jsonBody = {
       email: email.value,
@@ -39,16 +41,28 @@ export default function LoginScreen({navigation}) {
     })
       .then(res => {
         if (res.status === 200) {
-          console.log('Logged in');
-          navigation.reset({
-            index: 0,
-            routes: [{name: 'Dashboard'}],
-          });
+          return res.json();
         } else {
-          console.log('Failed to login to ' + BASE_URL + '. ' + res);
+          console.log('Failed to login to ' + BASE_URL);
         }
       })
+      .then(body => {
+        setLoginButtonLoading(false);
+        console.log('Logged in');
+        console.log(body);
+
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'Dashboard',
+              params: {name: body.name, settings: body.settings},
+            },
+          ],
+        });
+      })
       .catch(err => {
+        setLoginButtonLoading(false);
         console.log('Failed to login to ' + BASE_URL + ' due to: ' + err);
       });
   };
@@ -85,7 +99,10 @@ export default function LoginScreen({navigation}) {
           <Text style={styles.forgot}>Forgot your password?</Text>
         </TouchableOpacity>
       </View>
-      <Button mode="contained" onPress={onLoginPressed}>
+      <Button
+        mode="contained"
+        loading={loginButtonLoading}
+        onPress={onLoginPressed}>
         Login
       </Button>
       <View style={styles.row}>
