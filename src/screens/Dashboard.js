@@ -1,7 +1,25 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {LogBox, View, StyleSheet} from 'react-native';
 import {Menu} from 'react-native-paper';
-import {encodeFromUint8Array, decodeToUint8Array} from '../utils';
+import {
+  encodeFromUint8Array,
+  decodeToUint8Array,
+  changeDisplayMode,
+  isUpdateRequired,
+  updateStats,
+} from '../utils';
+import {
+  SERVICE_UUID,
+  TEMPERATURE_UUID,
+  BATTERY_UUID,
+  VOLUME_UUID,
+  DISPLAY_MODE_UUID,
+  DISPLAY_MODES,
+  BATTERY_TRANSACTION_ID,
+  VOLUME_TRANSACTION_ID,
+  TEMPERATURE_TRANSACTION_ID,
+} from '../constants';
+import {BASE_URL} from '@env';
 import Background from '../components/Background';
 import Logo from '../components/Logo';
 import Header from '../components/Header';
@@ -14,40 +32,33 @@ import {BleManager} from 'react-native-ble-plx';
 LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
 LogBox.ignoreAllLogs(); //Ignore all log notifications
 
-const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
-const ANALOG_READ_UUID = '6d68efe5-04b6-4a85-abc4-c2670b7bf7fd';
-const DISPLAY_MODE_UUID = 'f27b53ad-c63d-49a0-8c0f-9f297e6cc520';
-
-const DISPLAY_MODES = {
-  BATTERY: 0,
-  VOLUME: 1,
-  TEMPERATURE: 2,
-  ALL: 3,
-};
-
-const DISPLAY_MODE_TITLES = {
-  BATTERY: 'Show battery',
-  VOLUME: 'Show volume',
-  TEMPERATURE: 'Show temperature',
-  ALL: 'Show all',
-};
-
 const bleManager = new BleManager();
 
 export default function Dashboard({route, navigation}) {
-  const {name, settings} = route.params;
+  const {name, email, settings} = route.params;
   const [isConnected, setIsConnected] = useState(false);
   const [connectedDevice, setConnectedDevice] = useState();
   const [snackbarVisible, setSnackbarVisible] = useState(true);
   const [snackbarMsg, setSnackbarMsg] = useState('');
-
-  const [message, setMessage] = useState('Nothing Yet');
+  const [selectedDisplayMode, setSelectedDisplayMode] = useState(
+    settings.displayMode,
+  );
+  const [temperature, setTemperature] = useState(0);
+  const [battery, setBattery] = useState(0);
+  const [volume, setVolume] = useState(0);
   const [displayModeMenuVisible, setDisplayModeMenuVisible] = useState(false);
+  const isInitialMount = useRef(true);
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+    } else {
+      updateStats(email, volume, temperature, battery);
+    }
+  }, [email, temperature, volume, battery]);
 
   const scanDevices = () => {
     console.log('scanning');
-    // display the Activityindicator
-
     bleManager.startDeviceScan(null, null, (error, scannedDevice) => {
       if (error) {
         console.warn(JSON.stringify(error));
@@ -71,7 +82,10 @@ export default function Dashboard({route, navigation}) {
 
       const isDeviceConnected = await connectedDevice.isConnected();
       if (isDeviceConnected) {
-        bleManager.cancelTransaction('messagetransaction');
+        // cancel any pending transactions
+        bleManager.cancelTransaction(BATTERY_TRANSACTION_ID);
+        bleManager.cancelTransaction(TEMPERATURE_TRANSACTION_ID);
+        bleManager.cancelTransaction(VOLUME_TRANSACTION_ID);
         bleManager.cancelTransaction('nightmodetransaction');
 
         bleManager
@@ -86,9 +100,9 @@ export default function Dashboard({route, navigation}) {
     }
   };
 
-  //Connect the device and start monitoring characteristics
   const connectDevice = async device => {
     console.log('connecting to Device:', device.name);
+    console.log('BASE_URL: ', BASE_URL);
 
     device = await device.connect();
     setConnectedDevice(device);
@@ -100,58 +114,99 @@ export default function Dashboard({route, navigation}) {
       setIsConnected(false);
     });
 
-    console.log(device.id);
+    // TODO: send display_mode to arduino as soon as app starts
 
-    //Message
-    device
-      .readCharacteristicForService(SERVICE_UUID, ANALOG_READ_UUID)
-      .then(encodedVal => {
-        console.log('initial message value');
-        console.log(decodeToUint8Array(encodedVal?.value));
-        setMessage(decodeToUint8Array(encodedVal?.value));
-      });
-
-    //Display mode
-    device
-      .readCharacteristicForService(SERVICE_UUID, DISPLAY_MODE_UUID)
-      .then(encodedVal => {
-        console.log('initial display mode value');
-        console.log(decodeToUint8Array(encodedVal?.value)[0]);
-      });
-
-    //monitor values and tell what to do when receiving an update
-    //Message
-    device.monitorCharacteristicForService(
-      SERVICE_UUID,
-      ANALOG_READ_UUID,
-      (error, characteristic) => {
-        if (characteristic?.value != null) {
-          console.log(
-            'Message update received: ',
-            decodeToUint8Array(characteristic?.value),
-          );
-          setMessage(decodeToUint8Array(characteristic?.value));
-        }
-      },
-      'messagetransaction',
-    );
-
-    //Display mode
-    device.monitorCharacteristicForService(
-      SERVICE_UUID,
-      DISPLAY_MODE_UUID,
-      (error, characteristic) => {
-        if (characteristic?.value != null) {
-          console.log(
-            'Box Value update received: ',
-            decodeToUint8Array(characteristic?.value),
-          );
-        }
-      },
-      'boxtransaction',
-    );
+    readInitialValues(device);
+    moniterChacteristics(device);
 
     console.log('Connection established');
+  };
+
+  const moniterChacteristics = device => {
+    device.monitorCharacteristicForService(
+      SERVICE_UUID,
+      BATTERY_UUID,
+      (error, characteristic) => {
+        if (characteristic?.value == null) {
+          console.log('Battery value is null');
+          return;
+        }
+
+        const batteryUpdate = decodeToUint8Array(characteristic?.value)[0];
+        console.log('Battery update received: ', batteryUpdate);
+        setBattery(batteryUpdate);
+
+        if (isUpdateRequired(battery, batteryUpdate)) {
+          setBattery(batteryUpdate);
+        }
+      },
+      BATTERY_TRANSACTION_ID,
+    );
+
+    device.monitorCharacteristicForService(
+      SERVICE_UUID,
+      TEMPERATURE_UUID,
+      (error, characteristic) => {
+        if (characteristic?.value == null) {
+          console.log('Temperature value is null');
+          return;
+        }
+
+        const tempUpdate = decodeToUint8Array(characteristic?.value)[0];
+        console.log('Temperature update received: ', tempUpdate);
+        if (isUpdateRequired(temperature, tempUpdate)) {
+          setTemperature(tempUpdate);
+        }
+      },
+      TEMPERATURE_TRANSACTION_ID,
+    );
+
+    device.monitorCharacteristicForService(
+      SERVICE_UUID,
+      VOLUME_UUID,
+      (error, characteristic) => {
+        if (characteristic?.value == null) {
+          console.log('Volume value is null');
+          return;
+        }
+
+        const volumeUpdate = decodeToUint8Array(characteristic?.value)[0];
+        console.log('Volume update received: ', volumeUpdate);
+        if (isUpdateRequired(volume, volumeUpdate)) {
+          setVolume(volumeUpdate);
+        }
+      },
+      VOLUME_TRANSACTION_ID,
+    );
+  };
+
+  const readInitialValues = device => {
+    // battery
+    device
+      .readCharacteristicForService(SERVICE_UUID, BATTERY_UUID)
+      .then(characteristic => {
+        const batteryVal = decodeToUint8Array(characteristic?.value)[0];
+        console.log(`initial battery value: ${batteryVal}`);
+        setBattery(batteryVal);
+      });
+
+    // temperature
+    device
+      .readCharacteristicForService(SERVICE_UUID, BATTERY_UUID)
+      .then(characteristic => {
+        const tempVal = decodeToUint8Array(characteristic?.value)[0];
+        console.log(`initial temp value: ${tempVal}`);
+        setTemperature(tempVal);
+      });
+
+    // volume
+    device
+      .readCharacteristicForService(SERVICE_UUID, BATTERY_UUID)
+      .then(characteristic => {
+        const volumeVal = decodeToUint8Array(characteristic?.value)[0];
+        console.log(`initial volume value: ${volumeVal}`);
+        setVolume(volumeVal);
+      });
   };
 
   const sendValueOverBT = async value => {
@@ -177,8 +232,15 @@ export default function Dashboard({route, navigation}) {
   };
 
   const onDisplayModeSelect = displayMode => {
+    if (!isConnected) {
+      console.log('Not connected to device');
+      showSnackbar('Not connected to device');
+      return;
+    }
     setDisplayModeMenuVisible(false);
     sendValueOverBT(displayMode);
+    changeDisplayMode(email, displayMode);
+    setSelectedDisplayMode(displayMode);
   };
 
   const showSnackbar = msg => {
@@ -188,15 +250,9 @@ export default function Dashboard({route, navigation}) {
 
   return (
     <Background>
-      <Snackbar
-        message={snackbarMsg}
-        visible={snackbarVisible}
-        onDismiss={() => setSnackbarVisible(false)}
-      />
       <Logo />
       <Header>Let’s hydrate</Header>
       <Paragraph>One stop shop for all your hydration needs.</Paragraph>
-
       {isConnected ? (
         <Button
           mode="contained"
@@ -216,7 +272,13 @@ export default function Dashboard({route, navigation}) {
       )}
 
       <View style={styles.row}>
-        <Paragraph>message: {message}</Paragraph>
+        <Paragraph>volume: {volume}</Paragraph>
+      </View>
+      <View style={styles.row}>
+        <Paragraph>battery: {battery}</Paragraph>
+      </View>
+      <View style={styles.row}>
+        <Paragraph>temperature: {temperature}</Paragraph>
       </View>
 
       <View style={styles.row}>
@@ -230,22 +292,16 @@ export default function Dashboard({route, navigation}) {
               Bootle display modes
             </Button>
           }>
-          <Menu.Item
-            onPress={() => onDisplayModeSelect(DISPLAY_MODES.BATTERY)}
-            title={DISPLAY_MODE_TITLES.BATTERY}
-          />
-          <Menu.Item
-            onPress={() => onDisplayModeSelect(DISPLAY_MODES.VOLUME)}
-            title={DISPLAY_MODE_TITLES.VOLUME}
-          />
-          <Menu.Item
-            onPress={() => onDisplayModeSelect(DISPLAY_MODES.TEMPERATURE)}
-            title={DISPLAY_MODE_TITLES.TEMPERATURE}
-          />
-          <Menu.Item
-            onPress={() => onDisplayModeSelect(DISPLAY_MODES.ALL)}
-            title={DISPLAY_MODE_TITLES.ALL}
-          />
+          {DISPLAY_MODES.map(mode => {
+            return (
+              <Menu.Item
+                key={mode.enum}
+                onPress={() => onDisplayModeSelect(mode.enum)}
+                title={`Show ${mode.text}`}
+                disabled={selectedDisplayMode === mode.enum}
+              />
+            );
+          })}
         </Menu>
       </View>
 
@@ -261,6 +317,11 @@ export default function Dashboard({route, navigation}) {
         }}>
         Logout
       </Button>
+      <Snackbar
+        message={snackbarMsg}
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+      />
     </Background>
   );
 }

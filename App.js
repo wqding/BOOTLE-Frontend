@@ -50,7 +50,11 @@ export default function App() {
           <Stack.Screen
             name="Dashboard"
             component={Dashboard}
-            initialParams={{name: 'dev', settings: {display_mode: 0}}}
+            initialParams={{
+              name: 'admin',
+              email: 'admin@admin.com',
+              settings: {displayMode: 0},
+            }}
           />
           <Stack.Screen
             name="ResetPasswordScreen"

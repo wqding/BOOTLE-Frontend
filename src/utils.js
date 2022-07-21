@@ -1,4 +1,5 @@
 import {btoa, atob} from 'abab';
+import {BASE_URL} from '@env';
 
 export const encodeFromUint8Array = arr => {
   return btoa(String.fromCharCode(...Array.from(arr)));
@@ -65,4 +66,67 @@ export const boolToString = bool => {
   } else {
     return '0';
   }
+};
+
+export const changeDisplayMode = (email, mode) => {
+  fetch(BASE_URL + '/settings/display', {
+    method: 'POST',
+    headers: {
+      Accept: 'application/x-www-form-urlencoded',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: encodeJsonToForm({email: email, mode: mode}),
+  })
+    .then(res => {
+      console.log(res)
+      if (res.status === 200) {
+        console.log('Sucessfully updated display mode.');
+      } else {
+        console.log('Failed to update display mode.');
+      }
+    })
+    .catch(err => {
+      console.log('Failed to update display mode: ', err);
+    });
+};
+
+export const updateStats = (email, volume, temperature, battery) => {
+  fetch(BASE_URL + '/stats', {
+    method: 'POST',
+    headers: {
+      Accept: 'application/x-www-form-urlencoded',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: encodeJsonToForm({
+      email: email,
+      volume: volume,
+      temperature: temperature,
+      battery: battery,
+    }),
+  })
+    .then(res => {
+      if (res.status === 200) {
+        console.log('Sucessfully updated stats.');
+      } else {
+        console.log('Failed to update stats.');
+      }
+    })
+    .catch(err => {
+      console.log('Failed to update stats: ', err);
+    });
+};
+
+export const isUpdateRequired = (pastVal, currVal) => {
+  if (pastVal == currVal) {
+    return false;
+  }
+
+  if (pastVal == 0 || pastVal == null) {
+    return true;
+  }
+
+  if (Math.abs(currVal - pastVal) / Math.abs(pastVal) >= 0.05) {
+    return true;
+  }
+  return false;
 };

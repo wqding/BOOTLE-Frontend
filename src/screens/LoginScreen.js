@@ -47,16 +47,14 @@ export default function LoginScreen({navigation}) {
         }
       })
       .then(body => {
-        setLoginButtonLoading(false);
         console.log('Logged in');
-        console.log(body);
-
+        setLoginButtonLoading(false);
         navigation.reset({
           index: 0,
           routes: [
             {
               name: 'Dashboard',
-              params: {name: body.name, settings: body.settings},
+              params: body,
             },
           ],
         });
