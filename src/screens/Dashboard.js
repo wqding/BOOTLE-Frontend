@@ -136,48 +136,48 @@ export default function Dashboard({route, navigation}) {
         console.log('Battery update received: ', batteryUpdate);
         setBattery(batteryUpdate);
 
-        if (isUpdateRequired(battery, batteryUpdate)) {
-          setBattery(batteryUpdate);
-        }
+        // if (isUpdateRequired(battery, batteryUpdate)) {
+        //   setBattery(batteryUpdate);
+        // }
       },
       BATTERY_TRANSACTION_ID,
     );
 
-    device.monitorCharacteristicForService(
-      SERVICE_UUID,
-      TEMPERATURE_UUID,
-      (error, characteristic) => {
-        if (characteristic?.value == null) {
-          console.log('Temperature value is null');
-          return;
-        }
+    // device.monitorCharacteristicForService(
+    //   SERVICE_UUID,
+    //   TEMPERATURE_UUID,
+    //   (error, characteristic) => {
+    //     if (characteristic?.value == null) {
+    //       console.log('Temperature value is null');
+    //       return;
+    //     }
 
-        const tempUpdate = decodeToUint8Array(characteristic?.value)[0];
-        console.log('Temperature update received: ', tempUpdate);
-        if (isUpdateRequired(temperature, tempUpdate)) {
-          setTemperature(tempUpdate);
-        }
-      },
-      TEMPERATURE_TRANSACTION_ID,
-    );
+    //     const tempUpdate = decodeToUint8Array(characteristic?.value)[0];
+    //     console.log('Temperature update received: ', tempUpdate);
+    //     if (isUpdateRequired(temperature, tempUpdate)) {
+    //       setTemperature(tempUpdate);
+    //     }
+    //   },
+    //   TEMPERATURE_TRANSACTION_ID,
+    // );
 
-    device.monitorCharacteristicForService(
-      SERVICE_UUID,
-      VOLUME_UUID,
-      (error, characteristic) => {
-        if (characteristic?.value == null) {
-          console.log('Volume value is null');
-          return;
-        }
+    // device.monitorCharacteristicForService(
+    //   SERVICE_UUID,
+    //   VOLUME_UUID,
+    //   (error, characteristic) => {
+    //     if (characteristic?.value == null) {
+    //       console.log('Volume value is null');
+    //       return;
+    //     }
 
-        const volumeUpdate = decodeToUint8Array(characteristic?.value)[0];
-        console.log('Volume update received: ', volumeUpdate);
-        if (isUpdateRequired(volume, volumeUpdate)) {
-          setVolume(volumeUpdate);
-        }
-      },
-      VOLUME_TRANSACTION_ID,
-    );
+    //     const volumeUpdate = decodeToUint8Array(characteristic?.value)[0];
+    //     console.log('Volume update received: ', volumeUpdate);
+    //     if (isUpdateRequired(volume, volumeUpdate)) {
+    //       setVolume(volumeUpdate);
+    //     }
+    //   },
+    //   VOLUME_TRANSACTION_ID,
+    // );
   };
 
   const readInitialValues = device => {
@@ -190,23 +190,23 @@ export default function Dashboard({route, navigation}) {
         setBattery(batteryVal);
       });
 
-    // temperature
-    device
-      .readCharacteristicForService(SERVICE_UUID, BATTERY_UUID)
-      .then(characteristic => {
-        const tempVal = decodeToUint8Array(characteristic?.value)[0];
-        console.log(`initial temp value: ${tempVal}`);
-        setTemperature(tempVal);
-      });
+    // // temperature
+    // device
+    //   .readCharacteristicForService(SERVICE_UUID, BATTERY_UUID)
+    //   .then(characteristic => {
+    //     const tempVal = decodeToUint8Array(characteristic?.value)[0];
+    //     console.log(`initial temp value: ${tempVal}`);
+    //     setTemperature(tempVal);
+    //   });
 
-    // volume
-    device
-      .readCharacteristicForService(SERVICE_UUID, BATTERY_UUID)
-      .then(characteristic => {
-        const volumeVal = decodeToUint8Array(characteristic?.value)[0];
-        console.log(`initial volume value: ${volumeVal}`);
-        setVolume(volumeVal);
-      });
+    // // volume
+    // device
+    //   .readCharacteristicForService(SERVICE_UUID, BATTERY_UUID)
+    //   .then(characteristic => {
+    //     const volumeVal = decodeToUint8Array(characteristic?.value)[0];
+    //     console.log(`initial volume value: ${volumeVal}`);
+    //     setVolume(volumeVal);
+    //   });
   };
 
   const sendValueOverBT = async value => {
@@ -232,13 +232,13 @@ export default function Dashboard({route, navigation}) {
   };
 
   const onDisplayModeSelect = displayMode => {
-    if (!isConnected) {
-      console.log('Not connected to device');
-      showSnackbar('Not connected to device');
-      return;
-    }
+    // if (!isConnected) {
+    //   console.log('Not connected to device');
+    //   showSnackbar('Not connected to device');
+    //   return;
+    // }
     setDisplayModeMenuVisible(false);
-    sendValueOverBT(displayMode);
+    // sendValueOverBT(displayMode);
     changeDisplayMode(email, displayMode);
     setSelectedDisplayMode(displayMode);
   };
