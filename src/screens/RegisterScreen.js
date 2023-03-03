@@ -78,7 +78,7 @@ export default function RegisterScreen({navigation}) {
     <Background>
       <BackButton goBack={navigation.goBack} />
       <Logo />
-      <Header>Create Account</Header>
+      <Header>Sign Up</Header>
       <TextInput
         label="Name"
         returnKeyType="next"
@@ -112,7 +112,7 @@ export default function RegisterScreen({navigation}) {
         mode="contained"
         loading={registerButtonLoading}
         onPress={onSignUpPressed}
-        style={{marginTop: 24}}>
+        style={{marginTop: 24, backgroundColor:'#5065A8'}}>
         Sign Up
       </Button>
       <View style={styles.row}>

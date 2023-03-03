@@ -1,6 +1,6 @@
 import React, {useEffect, useState, useRef} from 'react';
-import {LogBox, View, StyleSheet} from 'react-native';
-import {Menu} from 'react-native-paper';
+import {LogBox, View, StyleSheet, Image, Text} from 'react-native';
+import {Menu, Appbar} from 'react-native-paper';
 import {
   encodeFromUint8Array,
   decodeToUint8Array,
@@ -250,12 +250,14 @@ export default function Dashboard({route, navigation}) {
 
   return (
     <Background>
-      <Logo />
-      <Header>Let’s hydrate</Header>
-      <Paragraph>One stop shop for all your hydration needs.</Paragraph>
+      <View style={{marginBottom:10}}>
+      <View style={{marginLeft: 10}}>
+        <Header>Let’s Hydrate!</Header>
+      </View>
       {isConnected ? (
         <Button
           mode="contained"
+          style={{backgroundColor:'#5065A8', width:300}}
           onPress={() => {
             disconnectDevice();
           }}>
@@ -264,49 +266,66 @@ export default function Dashboard({route, navigation}) {
       ) : (
         <Button
           mode="contained"
+          style={{backgroundColor:'#5065A8', width:300}}
           onPress={() => {
             scanDevices();
           }}>
           Connect
         </Button>
       )}
+      </View>
 
-      <View style={styles.row}>
-        <Paragraph>volume: {volume}</Paragraph>
-      </View>
-      <View style={styles.row}>
-        <Paragraph>battery: {battery}</Paragraph>
-      </View>
-      <View style={styles.row}>
-        <Paragraph>temperature: {temperature}</Paragraph>
+      <View>
+        <Header>Bottle Stats</Header>
       </View>
 
       <View style={styles.row}>
-        <Menu
-          visible={displayModeMenuVisible}
-          onDismiss={() => setDisplayModeMenuVisible(false)}
-          anchor={
-            <Button
-              mode="contained"
-              onPress={() => setDisplayModeMenuVisible(true)}>
-              Bootle display modes
-            </Button>
-          }>
-          {DISPLAY_MODES.map(mode => {
-            return (
-              <Menu.Item
-                key={mode.enum}
-                onPress={() => onDisplayModeSelect(mode.enum)}
-                title={`Show ${mode.text}`}
-                disabled={selectedDisplayMode === mode.enum}
-              />
-            );
-          })}
-        </Menu>
+        <Paragraph>💧 Water Full: {volume}%</Paragraph>
       </View>
+      <View style={styles.row}>
+        <Paragraph>🔋 Battery: {battery}%</Paragraph>
+      </View>
+      <View style={styles.row}>
+        <Paragraph>🌡 Temperature: {temperature}°C</Paragraph>
+      </View>
+
+      <View>
+        <Header>Display Modes</Header>
+      </View>
+      <Button
+        mode="contained"
+        style={{backgroundColor:'#5065A8'}}
+        onPress={() => onDisplayModeSelect(3)}>
+        💫 Show All
+      </Button>
+      <Button
+        mode="contained"
+        style={{backgroundColor:'#5065A8'}}
+        onPress={() => onDisplayModeSelect(0)}>
+        🔋 Show Battery
+      </Button>
+      <Button
+          mode="contained"
+          style={{backgroundColor:'#5065A8'}}
+          onPress={() => onDisplayModeSelect(1)}>
+          💧 Show Water Full %
+      </Button>
+      <Button
+        mode="contained"
+        style={{backgroundColor:'#5065A8'}}
+        onPress={() => onDisplayModeSelect(2)}>
+        🌡 Show Temperature
+      </Button>
+      <Button
+          mode="contained"
+          style={{backgroundColor:'#5065A8'}}
+          onPress={() => onDisplayModeSelect(4)}>
+          🚫 Show None
+      </Button>
 
       <Button
         mode="outlined"
+        style={{textColor:'#5065A8'}}
         onPress={() => {
           // TODO go to logout link
           disconnectDevice();
@@ -335,4 +354,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: theme.colors.primary,
   },
+    image: {
+      width: 50,
+      height: 70,
+      marginBottom: 8,
+      marginLeft: -20,
+      flexDirection: 'row',
+    },
 });
