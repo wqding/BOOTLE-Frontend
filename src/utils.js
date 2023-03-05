@@ -1,5 +1,6 @@
 import {btoa, atob} from 'abab';
 import {BASE_URL} from '@env';
+import {WEATHER_UUID, DISPLAY_MODE_UUID} from './constants';
 
 export const encodeFromUint8Array = arr => {
   return btoa(String.fromCharCode(...Array.from(arr)));
@@ -68,6 +69,21 @@ export const boolToString = bool => {
   }
 };
 
+export const getWeather = callback => {
+  fetch(
+    'https://api.open-meteo.com/v1/forecast?latitude=43.464681&longitude=-80.527721&current_weather=true',
+  )
+    .then(res => res.json())
+    .then(res => {
+      console.log(res);
+      callback(WEATHER_UUID, res.current_weather.temperature);
+      callback(DISPLAY_MODE_UUID, 4);
+    })
+    .catch(err => {
+      console.log('Failed to update display mode: ', err);
+    });
+};
+
 export const changeDisplayMode = (email, mode) => {
   fetch(BASE_URL + '/settings/display', {
     method: 'POST',
@@ -78,7 +94,7 @@ export const changeDisplayMode = (email, mode) => {
     body: encodeJsonToForm({email: email, mode: mode}),
   })
     .then(res => {
-      console.log(res)
+      console.log(res);
       if (res.status === 200) {
         console.log('Sucessfully updated display mode.');
       } else {

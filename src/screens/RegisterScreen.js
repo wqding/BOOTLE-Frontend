@@ -112,7 +112,7 @@ export default function RegisterScreen({navigation}) {
         mode="contained"
         loading={registerButtonLoading}
         onPress={onSignUpPressed}
-        style={{marginTop: 24, backgroundColor:'#5065A8'}}>
+        style={{marginTop: 24, backgroundColor: '#5065A8'}}>
         Sign Up
       </Button>
       <View style={styles.row}>

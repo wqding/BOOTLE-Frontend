@@ -1,18 +1,18 @@
 import React, {useEffect, useState, useRef} from 'react';
-import {LogBox, View, StyleSheet, Image, Text} from 'react-native';
-import {Menu, Appbar} from 'react-native-paper';
+import {LogBox, View, StyleSheet} from 'react-native';
 import {
   encodeFromUint8Array,
   decodeToUint8Array,
   changeDisplayMode,
   isUpdateRequired,
+  getWeather,
   updateStats,
 } from '../utils';
 import {
   SERVICE_UUID,
   TEMPERATURE_UUID,
   BATTERY_UUID,
-  VOLUME_UUID,
+  HEIGHT_UUID,
   DISPLAY_MODE_UUID,
   DISPLAY_MODES,
   BATTERY_TRANSACTION_ID,
@@ -21,7 +21,6 @@ import {
 } from '../constants';
 import {BASE_URL} from '@env';
 import Background from '../components/Background';
-import Logo from '../components/Logo';
 import Header from '../components/Header';
 import Paragraph from '../components/Paragraph';
 import Button from '../components/Button';
@@ -46,15 +45,15 @@ export default function Dashboard({route, navigation}) {
   const [temperature, setTemperature] = useState(0);
   const [battery, setBattery] = useState(0);
   const [volume, setVolume] = useState(0);
-  const [displayModeMenuVisible, setDisplayModeMenuVisible] = useState(false);
   const isInitialMount = useRef(true);
 
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
-    } else {
-      updateStats(email, volume, temperature, battery);
     }
+    // else {
+    //   updateStats(email, volume, temperature, battery);
+    // }
   }, [email, temperature, volume, battery]);
 
   const scanDevices = () => {
@@ -133,7 +132,7 @@ export default function Dashboard({route, navigation}) {
         }
 
         const batteryUpdate = decodeToUint8Array(characteristic?.value)[0];
-        console.log('Battery update received: ', batteryUpdate);
+        // console.log('Battery update received: ', batteryUpdate);
         setBattery(batteryUpdate);
 
         if (isUpdateRequired(battery, batteryUpdate)) {
@@ -153,7 +152,7 @@ export default function Dashboard({route, navigation}) {
         }
 
         const tempUpdate = decodeToUint8Array(characteristic?.value)[0];
-        console.log('Temperature update received: ', tempUpdate);
+        // console.log('Temperature update received: ', tempUpdate);
         if (isUpdateRequired(temperature, tempUpdate)) {
           setTemperature(tempUpdate);
         }
@@ -163,7 +162,7 @@ export default function Dashboard({route, navigation}) {
 
     device.monitorCharacteristicForService(
       SERVICE_UUID,
-      VOLUME_UUID,
+      HEIGHT_UUID,
       (error, characteristic) => {
         if (characteristic?.value == null) {
           console.log('Volume value is null');
@@ -171,7 +170,7 @@ export default function Dashboard({route, navigation}) {
         }
 
         const volumeUpdate = decodeToUint8Array(characteristic?.value)[0];
-        console.log('Volume update received: ', volumeUpdate);
+        // console.log('Volume update received: ', volumeUpdate);
         if (isUpdateRequired(volume, volumeUpdate)) {
           setVolume(volumeUpdate);
         }
@@ -209,14 +208,14 @@ export default function Dashboard({route, navigation}) {
       });
   };
 
-  const sendValueOverBT = async value => {
+  const sendValueOverBT = async (characteristicUUID, value) => {
     console.log(isConnected);
     if (isConnected) {
       bleManager
         .writeCharacteristicWithResponseForDevice(
           connectedDevice?.id,
           SERVICE_UUID,
-          DISPLAY_MODE_UUID,
+          characteristicUUID,
           encodeFromUint8Array(new Uint8Array([value])),
         )
         .then(characteristic => {
@@ -237,9 +236,14 @@ export default function Dashboard({route, navigation}) {
       showSnackbar('Not connected to device');
       return;
     }
-    setDisplayModeMenuVisible(false);
-    sendValueOverBT(displayMode);
-    changeDisplayMode(email, displayMode);
+
+    if (displayMode === 4) {
+      getWeather(sendValueOverBT);
+    } else {
+      sendValueOverBT(DISPLAY_MODE_UUID, displayMode);
+    }
+
+    // changeDisplayMode(email, displayMode);
     setSelectedDisplayMode(displayMode);
   };
 
@@ -250,29 +254,29 @@ export default function Dashboard({route, navigation}) {
 
   return (
     <Background>
-      <View style={{marginBottom:10}}>
-      <View style={{marginLeft: 10}}>
-        <Header>Let’s Hydrate!</Header>
-      </View>
-      {isConnected ? (
-        <Button
-          mode="contained"
-          style={{backgroundColor:'#5065A8', width:300}}
-          onPress={() => {
-            disconnectDevice();
-          }}>
-          Disconnect
-        </Button>
-      ) : (
-        <Button
-          mode="contained"
-          style={{backgroundColor:'#5065A8', width:300}}
-          onPress={() => {
-            scanDevices();
-          }}>
-          Connect
-        </Button>
-      )}
+      <View style={{marginBottom: 10}}>
+        <View style={{marginLeft: 10}}>
+          <Header>Let’s Hydrate!</Header>
+        </View>
+        {isConnected ? (
+          <Button
+            mode="contained"
+            style={{backgroundColor: '#5065A8', width: 300}}
+            onPress={() => {
+              disconnectDevice();
+            }}>
+            Disconnect
+          </Button>
+        ) : (
+          <Button
+            mode="contained"
+            style={{backgroundColor: '#5065A8', width: 300}}
+            onPress={() => {
+              scanDevices();
+            }}>
+            Connect
+          </Button>
+        )}
       </View>
 
       <View>
@@ -292,40 +296,19 @@ export default function Dashboard({route, navigation}) {
       <View>
         <Header>Display Modes</Header>
       </View>
-      <Button
-        mode="contained"
-        style={{backgroundColor:'#5065A8'}}
-        onPress={() => onDisplayModeSelect(3)}>
-        💫 Show All
-      </Button>
-      <Button
-        mode="contained"
-        style={{backgroundColor:'#5065A8'}}
-        onPress={() => onDisplayModeSelect(0)}>
-        🔋 Show Battery
-      </Button>
-      <Button
+      {DISPLAY_MODES.map((mode, index) => (
+        <Button
+          key={index}
           mode="contained"
-          style={{backgroundColor:'#5065A8'}}
-          onPress={() => onDisplayModeSelect(1)}>
-          💧 Show Water Full %
-      </Button>
-      <Button
-        mode="contained"
-        style={{backgroundColor:'#5065A8'}}
-        onPress={() => onDisplayModeSelect(2)}>
-        🌡 Show Temperature
-      </Button>
-      <Button
-          mode="contained"
-          style={{backgroundColor:'#5065A8'}}
-          onPress={() => onDisplayModeSelect(4)}>
-          🚫 Show None
-      </Button>
+          style={{backgroundColor: '#5065A8'}}
+          onPress={() => onDisplayModeSelect(mode.enum)}>
+          {mode.text}
+        </Button>
+      ))}
 
       <Button
         mode="outlined"
-        style={{textColor:'#5065A8'}}
+        style={{textColor: '#5065A8'}}
         onPress={() => {
           // TODO go to logout link
           disconnectDevice();
@@ -354,11 +337,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: theme.colors.primary,
   },
-    image: {
-      width: 50,
-      height: 70,
-      marginBottom: 8,
-      marginLeft: -20,
-      flexDirection: 'row',
-    },
+  image: {
+    width: 50,
+    height: 70,
+    marginBottom: 8,
+    marginLeft: -20,
+    flexDirection: 'row',
+  },
 });

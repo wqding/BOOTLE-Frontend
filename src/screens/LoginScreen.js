@@ -85,7 +85,7 @@ export default function LoginScreen({navigation}) {
       <TextInput
         label="Password"
         returnKeyType="done"
-        style={{selectionColor:'#5065A8'}}
+        style={{selectionColor: '#5065A8'}}
         value={password.value}
         onChangeText={text => setPassword({value: text, error: ''})}
         error={!!password.error}
@@ -100,7 +100,7 @@ export default function LoginScreen({navigation}) {
       </View>
       <Button
         mode="contained"
-        style={{backgroundColor:'#5065A8'}}
+        style={{backgroundColor: '#5065A8'}}
         loading={loginButtonLoading}
         onPress={onLoginPressed}>
         Login
