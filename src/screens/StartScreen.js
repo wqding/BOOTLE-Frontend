@@ -21,7 +21,7 @@ export default function StartScreen({navigation}) {
       <View style={{marginTop: 15, width: '110%'}}>
         <Button
           mode="contained"
-          style={{backgroundColor: '#5065A8'}}
+          style={{backgroundColor: '#6a83d4'}}
           onPress={() => navigation.navigate('LoginScreen')}>
           Login
         </Button>
@@ -29,7 +29,7 @@ export default function StartScreen({navigation}) {
       <View style={{marginTop: 5, width: '110%'}}>
         <Button
           mode="contained"
-          style={{backgroundColor: '#5065A8'}}
+          style={{backgroundColor: '#6a83d4'}}
           onPress={() => navigation.navigate('RegisterScreen')}>
           Sign Up
         </Button>

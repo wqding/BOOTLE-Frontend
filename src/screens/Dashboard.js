@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useRef} from 'react';
-import {LogBox, View, StyleSheet} from 'react-native';
+import {LogBox, View, StyleSheet, Dimensions} from 'react-native';
 import {
   encodeFromUint8Array,
   decodeToUint8Array,
@@ -27,11 +27,13 @@ import Button from '../components/Button';
 import {theme} from '../core/theme';
 import {Snackbar} from '../components/Snackbar';
 import {BleManager} from 'react-native-ble-plx';
+import {LineChart} from "react-native-chart-kit";
 
 LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
 LogBox.ignoreAllLogs(); //Ignore all log notifications
 
 const bleManager = new BleManager();
+const screenWidth = Dimensions.get("window").width;
 
 export default function Dashboard({route, navigation}) {
   const {name, email, settings} = route.params;
@@ -55,6 +57,18 @@ export default function Dashboard({route, navigation}) {
     //   updateStats(email, volume, temperature, battery);
     // }
   }, [email, temperature, volume, battery]);
+
+  const data = {
+    labels: ["02-28", "03-01", "03-02", "03-03", "03-04", "03-05", "03-06", "03-07"],
+    datasets: [
+      {
+        data: [874, 701 ,948, 804, 541, 1358, 932, 595],
+        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // optional
+        strokeWidth: 2 // optional
+      }
+    ],
+    legend: ["ml"] // optional
+  };
 
   const scanDevices = () => {
     console.log('scanning');
@@ -261,7 +275,7 @@ export default function Dashboard({route, navigation}) {
         {isConnected ? (
           <Button
             mode="contained"
-            style={{backgroundColor: '#5065A8', width: 300}}
+            style={{backgroundColor: '#6a83d4', width: 300}}
             onPress={() => {
               disconnectDevice();
             }}>
@@ -270,13 +284,30 @@ export default function Dashboard({route, navigation}) {
         ) : (
           <Button
             mode="contained"
-            style={{backgroundColor: '#5065A8', width: 300}}
+            style={{backgroundColor: '#6a83d4', width: 300}}
             onPress={() => {
               scanDevices();
             }}>
             Connect
           </Button>
         )}
+      </View>
+
+      <View>
+        <LineChart
+          data={data}
+          width={screenWidth}
+          height={220}
+          chartConfig={{
+            backgroundGradientFromOpacity: 0,
+            backgroundGradientToOpacity: 0,
+            color: (opacity = 1) => `rgba(80,101,168, ${opacity})`,
+            strokeWidth: 2, // optional, default 3
+            yAxisLabel: "milliliters",
+            xAxisLabel: "date",
+            useShadowColorFromDataset: false // optional
+          }}
+        />
       </View>
 
       <View>
@@ -300,7 +331,7 @@ export default function Dashboard({route, navigation}) {
         <Button
           key={index}
           mode="contained"
-          style={{backgroundColor: '#5065A8'}}
+          style={{backgroundColor: '#6a83d4'}}
           onPress={() => onDisplayModeSelect(mode.enum)}>
           {mode.text}
         </Button>
@@ -308,7 +339,7 @@ export default function Dashboard({route, navigation}) {
 
       <Button
         mode="outlined"
-        style={{textColor: '#5065A8'}}
+        style={{textColor: '#6a83d4'}}
         onPress={() => {
           // TODO go to logout link
           disconnectDevice();

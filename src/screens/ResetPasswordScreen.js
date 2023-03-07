@@ -40,7 +40,7 @@ export default function ResetPasswordScreen({navigation}) {
       <Button
         mode="contained"
         onPress={sendResetPasswordEmail}
-        style={{marginTop: 16, backgroundColor: '#5065A8'}}>
+        style={{marginTop: 16, backgroundColor: '#6a83d4'}}>
         Send Instructions
       </Button>
     </Background>
