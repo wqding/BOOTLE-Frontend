@@ -59,15 +59,26 @@ export default function Dashboard({route, navigation}) {
   }, [email, temperature, volume, battery]);
 
   const data = {
-    labels: ["02-28", "03-01", "03-02", "03-03", "03-04", "03-05", "03-06", "03-07"],
+    labels: ["03-08", "03-09", "03-10", "03-11", "03-12", "03-13", "03-14", "03-15"],
     datasets: [
       {
-        data: [874, 701 ,948, 804, 541, 1358, 932, 595],
+        data: [874, 0, 748, 804, 651, 1358, 932, 595],
         color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // optional
-        strokeWidth: 2 // optional
+        strokeWidth: 2, // optional
       }
     ],
-    legend: ["ml"] // optional
+    legend: ["ml"], // optional
+  };
+  const emptyData = {
+    labels: ["03-08", "03-09", "03-10", "03-11", "03-12", "03-13", "03-14", "03-15"],
+    datasets: [
+      {
+        data: [874, 0, 748, 804, 651, 1358, 932, 595],
+        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // optional
+        strokeWidth: 2, // optional
+      }
+    ],
+    legend: ["ml"], // optional
   };
 
   const scanDevices = () => {
@@ -129,7 +140,7 @@ export default function Dashboard({route, navigation}) {
 
     // TODO: send display_mode to arduino as soon as app starts
 
-    readInitialValues(device);
+    // readInitialValues(device);
     moniterChacteristics(device);
 
     console.log('Connection established');
@@ -146,7 +157,7 @@ export default function Dashboard({route, navigation}) {
         }
 
         const batteryUpdate = decodeToUint8Array(characteristic?.value)[0];
-        // console.log('Battery update received: ', batteryUpdate);
+        console.log('Battery update received: ', batteryUpdate);
         setBattery(batteryUpdate);
 
         if (isUpdateRequired(battery, batteryUpdate)) {
@@ -166,7 +177,7 @@ export default function Dashboard({route, navigation}) {
         }
 
         const tempUpdate = decodeToUint8Array(characteristic?.value)[0];
-        // console.log('Temperature update received: ', tempUpdate);
+        console.log('Temperature update received: ', tempUpdate);
         if (isUpdateRequired(temperature, tempUpdate)) {
           setTemperature(tempUpdate);
         }
@@ -184,7 +195,7 @@ export default function Dashboard({route, navigation}) {
         }
 
         const volumeUpdate = decodeToUint8Array(characteristic?.value)[0];
-        // console.log('Volume update received: ', volumeUpdate);
+        console.log('Volume update received: ', volumeUpdate);
         if (isUpdateRequired(volume, volumeUpdate)) {
           setVolume(volumeUpdate);
         }
@@ -234,7 +245,7 @@ export default function Dashboard({route, navigation}) {
         )
         .then(characteristic => {
           console.log(
-            'Box value changed to :',
+            'Sent value :',
             decodeToUint8Array(characteristic.value),
           );
         });
@@ -295,7 +306,7 @@ export default function Dashboard({route, navigation}) {
 
       <View>
         <LineChart
-          data={data}
+          data={isConnected ? data : data}
           width={screenWidth}
           height={220}
           chartConfig={{

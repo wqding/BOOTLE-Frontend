@@ -76,7 +76,8 @@ export const getWeather = callback => {
     .then(res => res.json())
     .then(res => {
       console.log(res);
-      callback(WEATHER_UUID, res.current_weather.temperature);
+      console.log(res.current_weather.temperature + 100)
+      callback(WEATHER_UUID, res.current_weather.temperature + 100);
       callback(DISPLAY_MODE_UUID, 4);
     })
     .catch(err => {
